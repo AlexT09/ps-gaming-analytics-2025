@@ -1,0 +1,94 @@
+# Conclusiones {#conclusiones}
+
+## Respuesta a la pregunta de investigación
+
+**¿Tiene relación el género de un videojuego con su precio de venta
+en la plataforma PlayStation?**
+
+**Sí, y la relación es sustancial.** El análisis de 24.057 registros de
+precios vinculados a 23.152 juegos del catálogo PlayStation demostró que
+el género es un predictor más consistente del precio que la plataforma
+(PS4 vs. PS5). La diferencia entre el género más caro y el más barato
+alcanza un factor de 40 veces en precio mediano ($39.99 vs. $0.99),
+una brecha que no puede atribuirse al azar sino a dinámicas estructurales
+del mercado.
+
+## Respuesta a los objetivos específicos
+
+| Objetivo | Resultado |
+|---|---|
+| **OE1** — Describir la distribución de precios | Distribución bimodal con sesgo positivo. Media $12.12, mediana $7.99. El 86% de los juegos cuesta menos de $20. |
+| **OE2** — Comparar precios medianos entre géneros | Simulation Racing ($39.99) y Open World ($24.99) son los más caros. Bowling ($0.99) y Pinball ($1.99) los más baratos. |
+| **OE3** — Analizar variabilidad interna por género | Géneros masivos tienen mayor variabilidad. Action va de $0.19 a $59.99 dentro del mismo género. |
+| **OE4** — Explorar si PS5 tiene precios más altos | En el 71% de los géneros analizados, PS5 supera o iguala a PS4 en precio mediano. |
+| **OE5** — Visualizar resultados en dashboards | Dashboards funcionales en R Shiny y Python Dash disponibles en el repositorio. |
+
+## Hallazgos con valor diferenciador
+
+Más allá de describir los datos, este análisis identificó tres patrones
+**no evidentes** que aportan valor original:
+
+**1. La saturación indie crea pisos de precio por género.**
+En géneros con alta presencia de publishers de alto volumen, el percentil
+25 de precios colapsa por debajo de $2. Esto no es solo consecuencia de
+la competencia: es el resultado de una estrategia deliberada de publishers
+como eastasiasoft que publican decenas de títulos por mes a precios mínimos
+para maximizar visibilidad en la tienda.
+
+**2. El precio por hora de entretenimiento explica los géneros caros.**
+Los géneros con precios medianos más altos son aquellos que prometen
+experiencias largas (Open World, Role Playing, Action-RPG). El consumidor
+acepta pagar más porque el costo por hora de entretenimiento resultante
+es comparable o inferior al de géneros baratos pero cortos.
+
+**3. El género predice el precio mejor que la generación de consola.**
+Un *Puzzle* de PS5 sigue costando menos que un *Role Playing* de PS4.
+Esto tiene implicaciones prácticas: la estrategia de pricing de un
+desarrollador debe definirse por género antes que por plataforma.
+
+## Implicaciones prácticas
+
+Para un **desarrollador independiente** que va a lanzar un juego en
+PlayStation, los hallazgos sugieren:
+
+- Si el juego es de *Action* o *Puzzle*, el mercado de referencia está
+  entre $2.99 y $9.99. Fijar un precio superior sin una propuesta de
+  valor clara será difícil de sostener.
+- Si el juego es de *Role Playing* o *Open World*, existe espacio para
+  precios entre $19.99 y $39.99, siempre que la duración y calidad
+  de producción lo justifiquen.
+- PS5 ofrece mayor margen de precio que PS4 en géneros de experiencia
+  larga, lo que sugiere que los lanzamientos en la nueva generación
+  tienen más flexibilidad de pricing.
+
+## Trabajo futuro
+
+Este análisis abre varias líneas de investigación:
+
+1. **Análisis longitudinal de precios:** Incorporar el historial de precios
+   para estudiar si los descuentos son más frecuentes en géneros específicos.
+
+2. **Segmentación AAA vs. indie por género:** Separar las dos capas del
+   mercado para obtener benchmarks más precisos para cada tipo de desarrollador.
+
+3. **Análisis de correlación precio-popularidad:** Cruzar los precios con
+   datos de ventas o ratings para determinar si los géneros caros tienen
+   mejor o peor relación precio-satisfacción.
+
+4. **Comparativa multi-plataforma:** Replicar el análisis para Steam y Xbox
+   para determinar si las diferencias de precio por género son específicas
+   de PlayStation o son fenómenos del mercado digital en general.
+
+---
+
+## Referencias
+
+- Newzoo. (2023). *Global Games Market Report 2023*. Newzoo BV.
+- Shapiro, C., & Varian, H. R. (1999). *Information rules: A strategic guide
+  to the network economy*. Harvard Business School Press.
+- Kruglov, A. (2025). *Gaming Profiles 2025 (Steam, PlayStation, Xbox)*.
+  Kaggle. https://www.kaggle.com/datasets/artyomkruglov/gaming-profiles-2025-steam-playstation-xbox
+- R Core Team. (2024). *R: A language and environment for statistical computing*.
+  R Foundation for Statistical Computing. https://www.R-project.org/
+- Wickham, H., et al. (2019). Welcome to the tidyverse.
+  *Journal of Open Source Software*, 4(43), 1686.

@@ -1,0 +1,95 @@
+# Introducción {#introduccion}
+
+## Contexto del problema
+
+El mercado de videojuegos ha experimentado una transformación radical en la
+última década. La digitalización de los canales de distribución, el auge del
+desarrollo independiente (*indie*) y la proliferación de plataformas de
+descarga directa han cambiado profundamente la manera en que los juegos llegan
+al consumidor y el precio al que se ofrecen.
+
+PlayStation, como una de las plataformas líderes del mercado global, ofrece
+a través de su tienda digital un catálogo de más de 23.000 títulos que abarca
+desde producciones de grandes estudios con precios superiores a los $60 USD,
+hasta juegos independientes que se venden por menos de $1. Esta enorme
+variabilidad de precios plantea una pregunta relevante para entender la
+economía del mercado de videojuegos:
+
+> **¿Existe una relación sistemática entre el género de un videojuego y su
+> precio de venta en la plataforma PlayStation?**
+
+Esta pregunta no es trivial. En mercados de bienes físicos, el precio suele
+estar determinado por los costos de producción. Pero en el mercado digital de
+videojuegos, donde el costo marginal de distribución es prácticamente cero,
+los precios responden más a factores como la percepción de valor del consumidor,
+la audiencia objetivo, la competencia dentro del género y las estrategias
+comerciales de los desarrolladores y publishers.
+
+## Importancia del tema
+
+Comprender la relación entre género y precio tiene implicaciones prácticas
+para múltiples actores del ecosistema:
+
+- **Desarrolladores independientes:** Al lanzar un juego, necesitan saber
+  a qué precio se venden juegos similares en su categoría para ser
+  competitivos sin subvalorar su producto.
+- **Consumidores:** Entender los patrones de precios por género permite
+  anticipar rangos de inversión según sus preferencias de juego.
+- **Analistas de mercado:** Identificar géneros con alta variabilidad de
+  precios señala nichos donde la diferenciación de producto es posible.
+- **Publishers:** La estrategia de precios es una herramienta clave para
+  posicionamiento de marca y maximización de ingresos.
+
+## Pregunta de investigación
+
+**¿Tiene relación el género de un videojuego con su precio de venta en
+la plataforma PlayStation?**
+
+De esta pregunta principal se derivan tres subpreguntas específicas:
+
+1. ¿Qué géneros presentan los precios medianos más altos y más bajos?
+2. ¿Existe diferencia significativa en la variabilidad de precios entre
+   géneros de nicho y géneros masivos?
+3. ¿Se mantiene la relación género-precio cuando se controla por plataforma
+   (PS4 vs PS5)?
+
+## Objetivos
+
+### Objetivo general
+
+Analizar la relación entre el género de un videojuego y su precio de venta
+en el mercado digital de PlayStation, usando el dataset *Gaming Profiles 2025*,
+para identificar patrones de fijación de precios según categoría de juego.
+
+### Objetivos específicos
+
+1. **Describir** la distribución de precios en el catálogo de PlayStation,
+   identificando tendencia central, dispersión y valores extremos.
+
+2. **Comparar** los precios medianos entre géneros para identificar cuáles
+   presentan mayor y menor precio sistemático.
+
+3. **Analizar** la variabilidad interna de precios por género para determinar
+   si existen géneros con mayor dispersión de precios.
+
+4. **Explorar** si la plataforma (PS4, PS5) modera la relación entre género
+   y precio, dado que PS5 es la generación más reciente.
+
+5. **Visualizar** los resultados de forma clara e interactiva a través de
+   un dashboard en R Shiny y Python Dash.
+
+## Estructura del documento
+
+El presente trabajo está organizado en los siguientes capítulos:
+
+- **Capítulo 2 — Marco Teórico:** conceptos sobre economía de videojuegos,
+  fijación de precios en mercados digitales y el rol del género como
+  categoría de producto.
+- **Capítulo 3 — Metodología:** descripción del dataset, proceso de ETL
+  y decisiones de análisis.
+- **Capítulo 4 — EDA:** análisis exploratorio completo con estadísticas
+  descriptivas y visualizaciones estáticas.
+- **Capítulo 5 — Resultados y Discusión:** interpretación crítica de los
+  hallazgos y respuesta a los objetivos.
+- **Capítulo 6 — Conclusiones:** síntesis de hallazgos, limitaciones y
+  trabajo futuro.

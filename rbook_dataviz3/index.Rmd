@@ -1,0 +1,46 @@
+--- 
+title: "¿Determina el género de un videojuego su precio en PlayStation?"
+subtitle: "Análisis de la relación entre categoría de juego y estructura de precios en el mercado digital de PlayStation (2025)"
+author: "Alex Terán"
+date: "`r format(Sys.Date(), '%B %Y')`"
+site: bookdown::bookdown_site
+documentclass: book
+description: |
+  Análisis exploratorio y estadístico sobre la relación entre el género
+  de un videojuego y su precio en la plataforma PlayStation,
+  usando el dataset Gaming Profiles 2025.
+link-citations: yes
+---
+
+# Portada {-}
+
+<br>
+
+---
+
+|  |  |
+|---|---|
+| **Título** | ¿Determina el género de un videojuego su precio en PlayStation? |
+| **Estudiante** | Alex Terán |
+| **Carrera** | Ciencia de Datos |
+| **Asignatura** | Visualización de Datos en R |
+| **Dataset** | Gaming Profiles 2025 — PlayStation |
+| **Fecha** | `r format(Sys.Date(), "%B %Y")` |
+
+---
+
+## Resumen {-}
+
+Este trabajo investiga si el género de un videojuego en la plataforma PlayStation
+tiene una relación con su precio de venta en el mercado digital. Usando el dataset
+*Gaming Profiles 2025*, que contiene información de más de 23.000 juegos y 62.000
+registros de precios, se realizó un análisis exploratorio y estadístico que
+permitió identificar patrones claros: géneros de nicho como *Simulation Racing*,
+*Open World* y *Role Playing* presentan precios medianos significativamente
+superiores a géneros masivos como *Puzzle*, *Platformer* y *Action*. Los
+resultados sugieren que la fijación de precios en PlayStation responde tanto a
+la audiencia objetivo de cada género como al volumen de oferta disponible.
+
+---
+
+*Publicado con [bookdown](https://bookdown.org) en GitHub Pages.*

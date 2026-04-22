@@ -1,0 +1,142 @@
+# Metodología {#metodologia}
+
+## Fuente de datos
+
+El análisis utiliza el dataset **Gaming Profiles 2025**, disponible
+públicamente en Kaggle bajo licencia CC0 (dominio público):
+
+> Kruglov, A. (2025). *Gaming Profiles 2025 (Steam, PlayStation, Xbox)*.
+> Kaggle. https://www.kaggle.com/datasets/artyomkruglov/gaming-profiles-2025-steam-playstation-xbox
+
+De los seis archivos disponibles en el esquema PlayStation, este trabajo
+utilizó tres:
+
+| Archivo | Registros | Variables clave |
+|---|---|---|
+| `games.csv` | 23.152 | `gameid`, `title`, `platform`, `genres`, `publishers`, `release_date` |
+| `players.csv` | 356.600 | `playerid`, `nickname`, `country` |
+| `prices.csv` | 62.816 | `gameid`, `usd`, `eur`, `gbp`, `jpy`, `rub`, `date_acquired` |
+
+El archivo `prices.csv` corresponde a un snapshot de precios tomado en
+**febrero de 2025**, lo que implica que los precios reflejan el estado del
+mercado en ese momento y no una serie temporal.
+
+## Proceso ETL
+
+### Extracción
+
+```{r etl-carga, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lubridate)
+library(knitr)
+library(kableExtra)
+library(scales)
+
+games   <- read_csv("data/games.csv", show_col_types = FALSE)
+players <- read_csv("data/players.csv", show_col_types = FALSE)
+prices  <- read_csv("data/prices.csv", show_col_types = FALSE)
+
+cat("games:  ", nrow(games), "filas ×", ncol(games), "columnas\n")
+cat("players:", nrow(players), "filas ×", ncol(players), "columnas\n")
+cat("prices: ", nrow(prices), "filas ×", ncol(prices), "columnas\n")
+```
+
+### Transformación
+
+**Limpieza de `games`:**
+
+La columna `genres` viene en formato de lista Python (`['Action', 'Indie']`).
+Se eliminan los corchetes y comillas, y se extrae el año de lanzamiento:
+
+```{r etl-games}
+games <- games %>%
+  distinct() %>%
+  mutate(
+    release_date     = as.Date(release_date),
+    year             = year(release_date),
+    genres_clean     = str_remove_all(coalesce(genres, ""), "[\\[\\]']"),
+    publishers_clean = str_remove_all(coalesce(publishers, ""), "[\\[\\]']")
+  )
+```
+
+**Filtrado de precios válidos:**
+
+Se eliminan precios nulos, cero o extremos (>$150 USD), que corresponden
+a errores o casos excepcionales no representativos del mercado general:
+
+```{r etl-prices}
+prices_clean <- prices %>%
+  distinct() %>%
+  filter(!is.na(usd), usd > 0, usd < 150)
+
+cat("Precios válidos:", nrow(prices_clean),
+    "de", nrow(prices), "originales (",
+    round(nrow(prices_clean)/nrow(prices)*100, 1), "%)\n")
+```
+
+**Expansión de géneros:**
+
+Para analizar precio por género, cada juego con múltiples géneros se
+expande en filas individuales (un género por fila):
+
+```{r etl-generos}
+genres_long <- games %>%
+  inner_join(prices_clean, by = "gameid") %>%
+  filter(genres_clean != "") %>%
+  separate_rows(genres_clean, sep = ",\\s*") %>%
+  mutate(genres_clean = str_trim(genres_clean)) %>%
+  filter(genres_clean != "")
+
+cat("Registros género-precio:", nrow(genres_long), "\n")
+cat("Géneros únicos con precio:", n_distinct(genres_long$genres_clean), "\n")
+```
+
+### Decisiones de análisis
+
+Para garantizar representatividad estadística, se trabajó únicamente con
+géneros que tuvieran al menos **50 juegos con precio disponible**. Géneros
+con menor representación fueron excluidos del análisis comparativo, aunque
+se mencionan en el análisis descriptivo general.
+
+```{r generos-representativos}
+generos_validos <- genres_long %>%
+  group_by(genres_clean) %>%
+  summarise(n = n(),
+            precio_mediana = median(usd, na.rm = TRUE),
+            precio_media   = mean(usd, na.rm = TRUE),
+            precio_sd      = sd(usd, na.rm = TRUE),
+            precio_min     = min(usd, na.rm = TRUE),
+            precio_max     = max(usd, na.rm = TRUE),
+            .groups = "drop") %>%
+  filter(n >= 50) %>%
+  arrange(desc(precio_mediana))
+
+cat("Géneros con ≥50 juegos para análisis:", nrow(generos_validos), "\n")
+```
+
+## Herramientas utilizadas
+
+El análisis se realizó íntegramente en **R** (versión 4.x) usando las
+siguientes librerías:
+
+| Librería | Uso |
+|---|---|
+| `tidyverse` | Importación, limpieza y transformación de datos |
+| `ggplot2` | Visualizaciones estáticas |
+| `plotly` | Visualizaciones interactivas |
+| `lubridate` | Manejo de fechas |
+| `kableExtra` | Tablas formateadas |
+| `bookdown` | Publicación del documento |
+
+Los dashboards interactivos se construyeron adicionalmente en **R Shiny**
+y **Python Dash**, disponibles en el repositorio del proyecto.
+
+## Consideraciones éticas y de reproducibilidad
+
+- Los datos son de dominio público (CC0) y no contienen información
+  personal identificable más allá del país de origen de los jugadores.
+- Todo el código de análisis está disponible en el repositorio de GitHub
+  y puede reproducirse ejecutando los archivos `.Rmd` con los datos
+  incluidos en la carpeta `data/`.
+- No se realizó ninguna imputación de valores faltantes; los registros
+  incompletos fueron excluidos del análisis.

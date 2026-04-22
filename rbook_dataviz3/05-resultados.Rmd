@@ -1,0 +1,122 @@
+# Resultados y Discusión {#resultados}
+
+## Verificación de hipótesis
+
+Con base en el análisis exploratorio realizado, se evalúa el cumplimiento
+de las tres hipótesis planteadas en el marco teórico.
+
+### H1: Géneros de nicho presentan precios más altos
+
+**Resultado: CONFIRMADA**
+
+Los géneros con menor número de títulos disponibles (*Simulation Racing*:
+66 juegos, *Open World*: 193 juegos, *Action Horror*: 92 juegos) presentan
+sistemáticamente los precios medianos más altos ($39.99, $24.99 y $24.99
+respectivamente). En contraste, los géneros más populares por volumen
+(*Platformer*: 2.384 juegos, *Action*: 2.999 juegos, *Puzzle*: 2.065 juegos)
+tienen precios medianos de $4.99, $2.99 y $4.99 respectivamente.
+
+La correlación entre volumen de títulos por género y precio mediano es
+**negativa y significativa**, lo que valida la hipótesis de precios de
+nicho vs. precios de penetración descrita en el marco teórico.
+
+### H2: Géneros masivos tienen mayor variabilidad de precios
+
+**Resultado: CONFIRMADA PARCIALMENTE**
+
+La variabilidad de precios (medida por desviación estándar) es alta en
+géneros masivos como *Action* y *Adventure*, donde coexisten juegos desde
+$0.19 hasta $59.99. Sin embargo, algunos géneros de nicho como *Role Playing*
+también muestran alta variabilidad ($0.99 – $69.99), lo que sugiere que
+dentro de ese género existen tanto producciones indie económicas como
+grandes RPGs de estudio.
+
+La hipótesis se confirma para los géneros con mayor volumen, pero no
+de forma universal — la variabilidad de precios también depende del nivel
+de penetración indie dentro de cada género específico.
+
+### H3: PS5 tiene precios más altos que PS4 en el mismo género
+
+**Resultado: CONFIRMADA**
+
+En los géneros analizados (top 14 por precio), PS5 presenta precios
+medianos iguales o superiores a PS4 en el 71% de los casos. La diferencia
+es más marcada en *Role Playing*, *Open World* y *Action-RPG*, géneros
+donde la nueva generación atrae producciones con mayor inversión de
+desarrollo. En géneros como *Simulation Racing* y *Hack & Slash*, la
+diferencia es menor porque el catálogo de PS5 todavía es más reducido
+que el de PS4.
+
+---
+
+## Hallazgos principales
+
+### 1. El género como predictor de precio es más fuerte que la plataforma
+
+Un hallazgo no anticipado en las hipótesis es que el género es un predictor
+de precio más consistente que la plataforma. Mientras que PS4 y PS5 muestran
+diferencias de precio de un 10-20% dentro del mismo género, la diferencia
+entre géneros puede ser de hasta un 4.000% (de $0.99 en Bowling a $39.99
+en Simulation Racing).
+
+Esto tiene implicaciones prácticas: **un desarrollador que quiere entender
+el precio de referencia para su juego debe mirar primero el género, no la
+plataforma**.
+
+### 2. La saturación indie define el piso de precios por género
+
+El análisis muestra que en géneros con alta penetración de publishers indie
+de alto volumen (eastasiasoft, Ratalaika Games, ThiGames), el piso de precios
+se ha comprimido dramáticamente. En *Action*, el percentil 25 de precios
+es apenas $1.49; en *Puzzle* es $1.99. Estos valores actúan como ancla
+psicológica hacia abajo: es muy difícil para un desarrollador indie justificar
+precios significativamente superiores dentro de esos géneros, aun si el
+juego tiene mayor calidad.
+
+Este fenómeno de **deflación por saturación de oferta indie** es una de
+las dinámicas más importantes del mercado digital de PlayStation y no
+había sido documentada específicamente para esta plataforma con datos de 2025.
+
+### 3. Los géneros de experiencia larga mantienen precios diferenciados
+
+Los géneros con precios más altos (*Simulation Racing*, *Open World*,
+*Role Playing*, *Action-RPG*) comparten una característica: prometen
+experiencias de larga duración. El consumidor percibe que pagar $29.99
+o $39.99 por un juego de *Open World* con 50+ horas de contenido tiene
+mejor relación precio-hora que pagar $4.99 por un juego de *Puzzle* que
+se completa en 2 horas.
+
+Este fenómeno, conocido en economía del entretenimiento como el
+**precio por hora de entretenimiento**, explica por qué los géneros
+más extensos sostienen precios más altos incluso en un mercado con
+mucha oferta.
+
+---
+
+## Discusión: limitaciones del análisis
+
+**Limitación 1 — Un solo snapshot de precios:**
+Los datos de precios corresponden a febrero de 2025. Los precios de los
+videojuegos varían significativamente durante el año (descuentos, bundles,
+temporadas de ventas). Un análisis longitudinal mostraría si la relación
+género-precio se mantiene estable o si ciertos géneros son más propensos
+a descuentos agresivos.
+
+**Limitación 2 — Múltiples géneros por juego:**
+La mayoría de los juegos tiene 2 o más géneros asignados. Al expandir
+por género, cada juego contribuye a múltiples categorías, lo que puede
+crear correlaciones artificiales entre géneros que frecuentemente se
+etiquetan juntos (ej: *Action* + *Adventure*). Un análisis más riguroso
+requeriría definir un género primario por juego.
+
+**Limitación 3 — Ausencia de datos de ventas:**
+El precio es solo una variable del mercado. Sin datos de volumen de ventas
+por género, no es posible saber si los géneros caros venden más o menos
+unidades. Un género caro con pocas ventas puede generar menos ingresos
+que un género barato con millones de transacciones.
+
+**Limitación 4 — Mezcla de producciones AAA e indie:**
+Dentro de un mismo género coexisten grandes producciones (*Elden Ring* en
+*Role Playing*, $59.99) y juegos indie (*Dungeon and Puzzles*, $0.99 en
+*Puzzle*). El análisis descriptivo no distingue entre estas dos capas del
+mercado, lo que genera parte de la alta variabilidad observada.

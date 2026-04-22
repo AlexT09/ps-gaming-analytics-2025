@@ -1,0 +1,86 @@
+# Marco Teórico {#marco}
+
+## El mercado digital de videojuegos
+
+El mercado global de videojuegos superó los $180 mil millones de dólares en
+2023 (Newzoo, 2023), con el segmento de juegos digitales como principal motor
+de crecimiento. A diferencia de los bienes físicos, los productos digitales
+tienen una característica económica fundamental: el **costo marginal de
+reproducción es cero**. Una vez desarrollado un videojuego, distribuir una
+copia adicional no tiene costo relevante para el productor.
+
+Esta particularidad tiene consecuencias directas sobre la fijación de precios.
+En mercados digitales, los precios no se determinan principalmente por los
+costos de producción o distribución, sino por la **disposición a pagar** del
+consumidor objetivo (*willingness to pay*) y por la **diferenciación percibida**
+del producto (Shapiro & Varian, 1999).
+
+## El género como categoría de producto
+
+En la industria de videojuegos, el **género** es la principal taxonomía
+utilizada tanto por plataformas como por consumidores para clasificar y
+descubrir juegos. Géneros como *Role Playing*, *Action* o *Puzzle* no son
+meramente descriptivos — definen expectativas sobre duración, complejidad,
+audiencia y, por extensión, precio.
+
+Desde la perspectiva del marketing de productos, el género funciona como
+una **señal de calidad** (*quality signal*): los consumidores usan el género
+para inferir características del producto antes de comprarlo. Un juego de
+*Open World* señala al comprador que esperará decenas de horas de contenido,
+lo que justifica un precio mayor. Un juego de *Puzzle* casual, en cambio,
+señala una experiencia breve y de menor complejidad, que el mercado valora
+a un precio inferior.
+
+## Estrategias de precios en videojuegos digitales
+
+La literatura sobre economía de entretenimiento digital identifica tres
+estrategias principales de fijación de precios en videojuegos:
+
+**1. Precio por valor percibido (*value-based pricing*):**
+El precio refleja lo que el consumidor cree que vale el juego. Los juegos
+de grandes franquicias (*AAA*) se posicionan en $60-$70 porque el mercado
+acepta ese precio por la promesa de calidad de producción, duración y marca.
+
+**2. Precio de penetración (*penetration pricing*):**
+Usado frecuentemente por desarrolladores indie, consiste en fijar un precio
+bajo para maximizar el número de compradores y ganar visibilidad en la
+plataforma. Géneros con alta oferta como *Puzzle*, *Platformer* y *Action*
+presentan este patrón: miles de títulos compiten a precios de $0.99–$4.99.
+
+**3. Precio de nicho (*niche pricing*):**
+En géneros con audiencias pequeñas pero comprometidas (*Turn Based*, 
+*Simulation Racing*, *Role Playing*), los desarrolladores pueden fijar
+precios más altos porque hay menos competencia y los jugadores de ese nicho
+están dispuestos a pagar más por contenido específico.
+
+## El factor indie en la estructura de precios
+
+Un fenómeno relevante para este análisis es el **boom del mercado indie**
+en PlayStation. Entre 2013 y 2024, los lanzamientos anuales de juegos en
+PlayStation crecieron un 1.570%, impulsados principalmente por publishers
+indie de alto volumen como eastasiasoft y Ratalaika Games.
+
+Esta masificación de la oferta indie ha tenido un efecto deflacionario sobre
+géneros como *Action*, *Puzzle* y *Platformer*, donde la alta competencia
+presiona los precios a la baja. En contraste, géneros con menor penetración
+indie — como *Simulation Racing* o *Open World* — mantienen precios más
+altos porque requieren mayor inversión de desarrollo y tienen menor número
+de competidores.
+
+## Hipótesis de trabajo
+
+Con base en el marco teórico, se plantean las siguientes hipótesis:
+
+**H1:** Los géneros de nicho (menor volumen de títulos) presentarán precios
+medianos significativamente más altos que los géneros masivos.
+
+**H2:** Los géneros con alta presencia indie (*Action*, *Puzzle*, *Platformer*)
+presentarán mayor variabilidad de precios, dado que coexisten títulos muy
+baratos con producciones de mayor calidad dentro del mismo género.
+
+**H3:** Los juegos de PS5 presentarán precios medianos similares o superiores
+a los de PS4 dentro del mismo género, dado que la nueva generación atrae
+producciones de mayor escala.
+
+Estas hipótesis se someten a verificación empírica en el capítulo de
+análisis exploratorio y resultados.

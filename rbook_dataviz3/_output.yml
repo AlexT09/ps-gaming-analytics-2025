@@ -1,0 +1,12 @@
+bookdown::gitbook:
+  css: style.css
+  config:
+    toc:
+      before: |
+        <li><a href="./">Gaming Profiles 2025 · Alex Terán</a></li>
+      after: |
+        <li><a href="https://github.com/rstudio/bookdown" target="_blank">Publicado con bookdown</a></li>
+    sharing:
+      github: yes
+      facebook: no
+      twitter: no

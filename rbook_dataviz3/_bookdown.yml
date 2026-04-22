@@ -1,0 +1,15 @@
+book_filename: "rbook_dataviz3"
+language:
+  ui:
+    chapter_name: "Capítulo "
+
+rmd_files:
+  - "index.Rmd"
+  - "01-introduccion.Rmd"
+  - "02-marco.Rmd"
+  - "03-metodologia.Rmd"
+  - "04-eda.Rmd"
+  - "05-resultados.Rmd"
+  - "06-conclusiones.Rmd"
+
+output_dir: "docs"
