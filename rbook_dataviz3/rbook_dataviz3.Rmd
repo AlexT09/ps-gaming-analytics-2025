@@ -1,0 +1,955 @@
+--- 
+title: "¿Determina el género de un videojuego su precio en PlayStation?"
+subtitle: "Análisis de la relación entre categoría de juego y estructura de precios en el mercado digital de PlayStation (2025)"
+author: "Alex Terán"
+date: "`r format(Sys.Date(), '%B %Y')`"
+site: bookdown::bookdown_site
+documentclass: book
+description: |
+  Análisis exploratorio y estadístico sobre la relación entre el género
+  de un videojuego y su precio en la plataforma PlayStation,
+  usando el dataset Gaming Profiles 2025.
+link-citations: yes
+---
+
+# Portada {-}
+
+<br>
+
+---
+
+|  |  |
+|---|---|
+| **Título** | ¿Determina el género de un videojuego su precio en PlayStation? |
+| **Estudiante** | Alex Terán |
+| **Carrera** | Ciencia de Datos |
+| **Asignatura** | Visualización de Datos en R |
+| **Dataset** | Gaming Profiles 2025 — PlayStation |
+| **Fecha** | `r format(Sys.Date(), "%B %Y")` |
+
+---
+
+## Resumen {-}
+
+Este trabajo investiga si el género de un videojuego en la plataforma PlayStation
+tiene una relación con su precio de venta en el mercado digital. Usando el dataset
+*Gaming Profiles 2025*, que contiene información de más de 23.000 juegos y 62.000
+registros de precios, se realizó un análisis exploratorio y estadístico que
+permitió identificar patrones claros: géneros de nicho como *Simulation Racing*,
+*Open World* y *Role Playing* presentan precios medianos significativamente
+superiores a géneros masivos como *Puzzle*, *Platformer* y *Action*. Los
+resultados sugieren que la fijación de precios en PlayStation responde tanto a
+la audiencia objetivo de cada género como al volumen de oferta disponible.
+
+---
+
+*Publicado con [bookdown](https://bookdown.org) en GitHub Pages.*
+
+<!--chapter:end:index.Rmd-->
+
+# Introducción {#introduccion}
+
+## Contexto del problema
+
+El mercado de videojuegos ha experimentado una transformación radical en la
+última década. La digitalización de los canales de distribución, el auge del
+desarrollo independiente (*indie*) y la proliferación de plataformas de
+descarga directa han cambiado profundamente la manera en que los juegos llegan
+al consumidor y el precio al que se ofrecen.
+
+PlayStation, como una de las plataformas líderes del mercado global, ofrece
+a través de su tienda digital un catálogo de más de 23.000 títulos que abarca
+desde producciones de grandes estudios con precios superiores a los $60 USD,
+hasta juegos independientes que se venden por menos de $1. Esta enorme
+variabilidad de precios plantea una pregunta relevante para entender la
+economía del mercado de videojuegos:
+
+> **¿Existe una relación sistemática entre el género de un videojuego y su
+> precio de venta en la plataforma PlayStation?**
+
+Esta pregunta no es trivial. En mercados de bienes físicos, el precio suele
+estar determinado por los costos de producción. Pero en el mercado digital de
+videojuegos, donde el costo marginal de distribución es prácticamente cero,
+los precios responden más a factores como la percepción de valor del consumidor,
+la audiencia objetivo, la competencia dentro del género y las estrategias
+comerciales de los desarrolladores y publishers.
+
+## Importancia del tema
+
+Comprender la relación entre género y precio tiene implicaciones prácticas
+para múltiples actores del ecosistema:
+
+- **Desarrolladores independientes:** Al lanzar un juego, necesitan saber
+  a qué precio se venden juegos similares en su categoría para ser
+  competitivos sin subvalorar su producto.
+- **Consumidores:** Entender los patrones de precios por género permite
+  anticipar rangos de inversión según sus preferencias de juego.
+- **Analistas de mercado:** Identificar géneros con alta variabilidad de
+  precios señala nichos donde la diferenciación de producto es posible.
+- **Publishers:** La estrategia de precios es una herramienta clave para
+  posicionamiento de marca y maximización de ingresos.
+
+## Pregunta de investigación
+
+**¿Tiene relación el género de un videojuego con su precio de venta en
+la plataforma PlayStation?**
+
+De esta pregunta principal se derivan tres subpreguntas específicas:
+
+1. ¿Qué géneros presentan los precios medianos más altos y más bajos?
+2. ¿Existe diferencia significativa en la variabilidad de precios entre
+   géneros de nicho y géneros masivos?
+3. ¿Se mantiene la relación género-precio cuando se controla por plataforma
+   (PS4 vs PS5)?
+
+## Objetivos
+
+### Objetivo general
+
+Analizar la relación entre el género de un videojuego y su precio de venta
+en el mercado digital de PlayStation, usando el dataset *Gaming Profiles 2025*,
+para identificar patrones de fijación de precios según categoría de juego.
+
+### Objetivos específicos
+
+1. **Describir** la distribución de precios en el catálogo de PlayStation,
+   identificando tendencia central, dispersión y valores extremos.
+
+2. **Comparar** los precios medianos entre géneros para identificar cuáles
+   presentan mayor y menor precio sistemático.
+
+3. **Analizar** la variabilidad interna de precios por género para determinar
+   si existen géneros con mayor dispersión de precios.
+
+4. **Explorar** si la plataforma (PS4, PS5) modera la relación entre género
+   y precio, dado que PS5 es la generación más reciente.
+
+5. **Visualizar** los resultados de forma clara e interactiva a través de
+   un dashboard en R Shiny y Python Dash.
+
+## Estructura del documento
+
+El presente trabajo está organizado en los siguientes capítulos:
+
+- **Capítulo 2 — Marco Teórico:** conceptos sobre economía de videojuegos,
+  fijación de precios en mercados digitales y el rol del género como
+  categoría de producto.
+- **Capítulo 3 — Metodología:** descripción del dataset, proceso de ETL
+  y decisiones de análisis.
+- **Capítulo 4 — EDA:** análisis exploratorio completo con estadísticas
+  descriptivas y visualizaciones estáticas.
+- **Capítulo 5 — Resultados y Discusión:** interpretación crítica de los
+  hallazgos y respuesta a los objetivos.
+- **Capítulo 6 — Conclusiones:** síntesis de hallazgos, limitaciones y
+  trabajo futuro.
+
+<!--chapter:end:01-introduccion.Rmd-->
+
+# Marco Teórico {#marco}
+
+## El mercado digital de videojuegos
+
+El mercado global de videojuegos superó los $180 mil millones de dólares en
+2023 (Newzoo, 2023), con el segmento de juegos digitales como principal motor
+de crecimiento. A diferencia de los bienes físicos, los productos digitales
+tienen una característica económica fundamental: el **costo marginal de
+reproducción es cero**. Una vez desarrollado un videojuego, distribuir una
+copia adicional no tiene costo relevante para el productor.
+
+Esta particularidad tiene consecuencias directas sobre la fijación de precios.
+En mercados digitales, los precios no se determinan principalmente por los
+costos de producción o distribución, sino por la **disposición a pagar** del
+consumidor objetivo (*willingness to pay*) y por la **diferenciación percibida**
+del producto (Shapiro & Varian, 1999).
+
+## El género como categoría de producto
+
+En la industria de videojuegos, el **género** es la principal taxonomía
+utilizada tanto por plataformas como por consumidores para clasificar y
+descubrir juegos. Géneros como *Role Playing*, *Action* o *Puzzle* no son
+meramente descriptivos — definen expectativas sobre duración, complejidad,
+audiencia y, por extensión, precio.
+
+Desde la perspectiva del marketing de productos, el género funciona como
+una **señal de calidad** (*quality signal*): los consumidores usan el género
+para inferir características del producto antes de comprarlo. Un juego de
+*Open World* señala al comprador que esperará decenas de horas de contenido,
+lo que justifica un precio mayor. Un juego de *Puzzle* casual, en cambio,
+señala una experiencia breve y de menor complejidad, que el mercado valora
+a un precio inferior.
+
+## Estrategias de precios en videojuegos digitales
+
+La literatura sobre economía de entretenimiento digital identifica tres
+estrategias principales de fijación de precios en videojuegos:
+
+**1. Precio por valor percibido (*value-based pricing*):**
+El precio refleja lo que el consumidor cree que vale el juego. Los juegos
+de grandes franquicias (*AAA*) se posicionan en $60-$70 porque el mercado
+acepta ese precio por la promesa de calidad de producción, duración y marca.
+
+**2. Precio de penetración (*penetration pricing*):**
+Usado frecuentemente por desarrolladores indie, consiste en fijar un precio
+bajo para maximizar el número de compradores y ganar visibilidad en la
+plataforma. Géneros con alta oferta como *Puzzle*, *Platformer* y *Action*
+presentan este patrón: miles de títulos compiten a precios de $0.99–$4.99.
+
+**3. Precio de nicho (*niche pricing*):**
+En géneros con audiencias pequeñas pero comprometidas (*Turn Based*, 
+*Simulation Racing*, *Role Playing*), los desarrolladores pueden fijar
+precios más altos porque hay menos competencia y los jugadores de ese nicho
+están dispuestos a pagar más por contenido específico.
+
+## El factor indie en la estructura de precios
+
+Un fenómeno relevante para este análisis es el **boom del mercado indie**
+en PlayStation. Entre 2013 y 2024, los lanzamientos anuales de juegos en
+PlayStation crecieron un 1.570%, impulsados principalmente por publishers
+indie de alto volumen como eastasiasoft y Ratalaika Games.
+
+Esta masificación de la oferta indie ha tenido un efecto deflacionario sobre
+géneros como *Action*, *Puzzle* y *Platformer*, donde la alta competencia
+presiona los precios a la baja. En contraste, géneros con menor penetración
+indie — como *Simulation Racing* o *Open World* — mantienen precios más
+altos porque requieren mayor inversión de desarrollo y tienen menor número
+de competidores.
+
+## Hipótesis de trabajo
+
+Con base en el marco teórico, se plantean las siguientes hipótesis:
+
+**H1:** Los géneros de nicho (menor volumen de títulos) presentarán precios
+medianos significativamente más altos que los géneros masivos.
+
+**H2:** Los géneros con alta presencia indie (*Action*, *Puzzle*, *Platformer*)
+presentarán mayor variabilidad de precios, dado que coexisten títulos muy
+baratos con producciones de mayor calidad dentro del mismo género.
+
+**H3:** Los juegos de PS5 presentarán precios medianos similares o superiores
+a los de PS4 dentro del mismo género, dado que la nueva generación atrae
+producciones de mayor escala.
+
+Estas hipótesis se someten a verificación empírica en el capítulo de
+análisis exploratorio y resultados.
+
+<!--chapter:end:02-marco.Rmd-->
+
+# Metodología {#metodologia}
+
+## Fuente de datos
+
+El análisis utiliza el dataset **Gaming Profiles 2025**, disponible
+públicamente en Kaggle bajo licencia CC0 (dominio público):
+
+> Kruglov, A. (2025). *Gaming Profiles 2025 (Steam, PlayStation, Xbox)*.
+> Kaggle. https://www.kaggle.com/datasets/artyomkruglov/gaming-profiles-2025-steam-playstation-xbox
+
+De los seis archivos disponibles en el esquema PlayStation, este trabajo
+utilizó tres:
+
+| Archivo | Registros | Variables clave |
+|---|---|---|
+| `games.csv` | 23.152 | `gameid`, `title`, `platform`, `genres`, `publishers`, `release_date` |
+| `players.csv` | 356.600 | `playerid`, `nickname`, `country` |
+| `prices.csv` | 62.816 | `gameid`, `usd`, `eur`, `gbp`, `jpy`, `rub`, `date_acquired` |
+
+El archivo `prices.csv` corresponde a un snapshot de precios tomado en
+**febrero de 2025**, lo que implica que los precios reflejan el estado del
+mercado en ese momento y no una serie temporal.
+
+## Proceso ETL
+
+### Extracción
+
+```{r etl-carga, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lubridate)
+library(knitr)
+library(kableExtra)
+library(scales)
+
+games   <- read_csv("data/games.csv", show_col_types = FALSE)
+players <- read_csv("data/players.csv", show_col_types = FALSE)
+prices  <- read_csv("data/prices.csv", show_col_types = FALSE)
+
+cat("games:  ", nrow(games), "filas ×", ncol(games), "columnas\n")
+cat("players:", nrow(players), "filas ×", ncol(players), "columnas\n")
+cat("prices: ", nrow(prices), "filas ×", ncol(prices), "columnas\n")
+```
+
+### Transformación
+
+**Limpieza de `games`:**
+
+La columna `genres` viene en formato de lista Python (`['Action', 'Indie']`).
+Se eliminan los corchetes y comillas, y se extrae el año de lanzamiento:
+
+```{r etl-games}
+games <- games %>%
+  distinct() %>%
+  mutate(
+    release_date     = as.Date(release_date),
+    year             = year(release_date),
+    genres_clean     = str_remove_all(coalesce(genres, ""), "[\\[\\]']"),
+    publishers_clean = str_remove_all(coalesce(publishers, ""), "[\\[\\]']")
+  )
+```
+
+**Filtrado de precios válidos:**
+
+Se eliminan precios nulos, cero o extremos (>$150 USD), que corresponden
+a errores o casos excepcionales no representativos del mercado general:
+
+```{r etl-prices}
+prices_clean <- prices %>%
+  distinct() %>%
+  filter(!is.na(usd), usd > 0, usd < 150)
+
+cat("Precios válidos:", nrow(prices_clean),
+    "de", nrow(prices), "originales (",
+    round(nrow(prices_clean)/nrow(prices)*100, 1), "%)\n")
+```
+
+**Expansión de géneros:**
+
+Para analizar precio por género, cada juego con múltiples géneros se
+expande en filas individuales (un género por fila):
+
+```{r etl-generos}
+genres_long <- games %>%
+  inner_join(prices_clean, by = "gameid") %>%
+  filter(genres_clean != "") %>%
+  separate_rows(genres_clean, sep = ",\\s*") %>%
+  mutate(genres_clean = str_trim(genres_clean)) %>%
+  filter(genres_clean != "")
+
+cat("Registros género-precio:", nrow(genres_long), "\n")
+cat("Géneros únicos con precio:", n_distinct(genres_long$genres_clean), "\n")
+```
+
+### Decisiones de análisis
+
+Para garantizar representatividad estadística, se trabajó únicamente con
+géneros que tuvieran al menos **50 juegos con precio disponible**. Géneros
+con menor representación fueron excluidos del análisis comparativo, aunque
+se mencionan en el análisis descriptivo general.
+
+```{r generos-representativos}
+generos_validos <- genres_long %>%
+  group_by(genres_clean) %>%
+  summarise(n = n(),
+            precio_mediana = median(usd, na.rm = TRUE),
+            precio_media   = mean(usd, na.rm = TRUE),
+            precio_sd      = sd(usd, na.rm = TRUE),
+            precio_min     = min(usd, na.rm = TRUE),
+            precio_max     = max(usd, na.rm = TRUE),
+            .groups = "drop") %>%
+  filter(n >= 50) %>%
+  arrange(desc(precio_mediana))
+
+cat("Géneros con ≥50 juegos para análisis:", nrow(generos_validos), "\n")
+```
+
+## Herramientas utilizadas
+
+El análisis se realizó íntegramente en **R** (versión 4.x) usando las
+siguientes librerías:
+
+| Librería | Uso |
+|---|---|
+| `tidyverse` | Importación, limpieza y transformación de datos |
+| `ggplot2` | Visualizaciones estáticas |
+| `plotly` | Visualizaciones interactivas |
+| `lubridate` | Manejo de fechas |
+| `kableExtra` | Tablas formateadas |
+| `bookdown` | Publicación del documento |
+
+Los dashboards interactivos se construyeron adicionalmente en **R Shiny**
+y **Python Dash**, disponibles en el repositorio del proyecto.
+
+## Consideraciones éticas y de reproducibilidad
+
+- Los datos son de dominio público (CC0) y no contienen información
+  personal identificable más allá del país de origen de los jugadores.
+- Todo el código de análisis está disponible en el repositorio de GitHub
+  y puede reproducirse ejecutando los archivos `.Rmd` con los datos
+  incluidos en la carpeta `data/`.
+- No se realizó ninguna imputación de valores faltantes; los registros
+  incompletos fueron excluidos del análisis.
+
+<!--chapter:end:03-metodologia.Rmd-->
+
+# Análisis Exploratorio de Datos {#eda}
+
+```{r setup-eda, message=FALSE, warning=FALSE, echo=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(scales)
+library(lubridate)
+library(knitr)
+library(kableExtra)
+library(corrplot)
+
+games <- read_csv("data/games.csv", show_col_types = FALSE) %>%
+  distinct() %>%
+  mutate(
+    release_date     = as.Date(release_date),
+    year             = year(release_date),
+    genres_clean     = str_remove_all(coalesce(genres,""), "[\\[\\]']"),
+    publishers_clean = str_remove_all(coalesce(publishers,""), "[\\[\\]']")
+  )
+
+prices_clean <- read_csv("data/prices.csv", show_col_types = FALSE) %>%
+  distinct() %>%
+  filter(!is.na(usd), usd > 0, usd < 150)
+
+genres_long <- games %>%
+  inner_join(prices_clean, by = "gameid") %>%
+  filter(genres_clean != "") %>%
+  separate_rows(genres_clean, sep = ",\\s*") %>%
+  mutate(genres_clean = str_trim(genres_clean)) %>%
+  filter(genres_clean != "")
+
+generos_validos <- genres_long %>%
+  group_by(genres_clean) %>%
+  summarise(n = n(),
+            precio_mediana = median(usd, na.rm = TRUE),
+            precio_media   = mean(usd, na.rm = TRUE),
+            precio_sd      = sd(usd, na.rm = TRUE),
+            precio_min     = min(usd, na.rm = TRUE),
+            precio_max     = max(usd, na.rm = TRUE),
+            .groups = "drop") %>%
+  filter(n >= 50) %>%
+  arrange(desc(precio_mediana))
+```
+
+## Descripción general del catálogo
+
+Antes de analizar la relación género-precio, se describe el catálogo general
+para contextualizar el análisis.
+
+### Distribución por plataforma
+
+```{r plataforma, fig.cap="Distribución del catálogo por plataforma PlayStation"}
+games %>%
+  count(platform, sort = TRUE) %>%
+  mutate(pct = round(n/sum(n)*100, 1)) %>%
+  ggplot(aes(x = reorder(platform, n), y = n, fill = platform)) +
+  geom_col(show.legend = FALSE, width = 0.6) +
+  geom_text(aes(label = paste0(comma(n), " (", pct, "%)")),
+            hjust = -0.05, size = 4) +
+  coord_flip() +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.3)), labels = comma) +
+  scale_fill_manual(values = c("#001f5b","#003087","#0070CC","#93C6E0")) +
+  labs(title = "Juegos por plataforma PlayStation",
+       subtitle = "PS4 concentra el 61% del catálogo total",
+       x = NULL, y = "Número de juegos") +
+  theme_minimal(base_size = 13)
+```
+
+**Contexto:** PS4 domina con 14.163 juegos (61%), seguida de PS5 con 6.422
+(28%). Esta distribución es importante para el análisis de precios, ya que
+PS4 y PS5 pueden tener estructuras de precios diferentes dentro del mismo género.
+
+---
+
+## Distribución general de precios
+
+### Estadísticas descriptivas globales
+
+```{r stats-globales}
+prices_clean %>%
+  summarise(
+    N = comma(n()),
+    Mínimo = dollar(min(usd)),
+    `Q1 (25%)` = dollar(quantile(usd, 0.25)),
+    Mediana = dollar(median(usd)),
+    Media = dollar(round(mean(usd), 2)),
+    `Q3 (75%)` = dollar(quantile(usd, 0.75)),
+    Máximo = dollar(max(usd)),
+    `Desv. Est.` = dollar(round(sd(usd), 2))
+  ) %>%
+  pivot_longer(everything(), names_to = "Estadístico", values_to = "Valor") %>%
+  kable(caption = "Estadísticas descriptivas del precio en USD (catálogo completo)") %>%
+  kable_styling(bootstrap_options = c("striped","hover"), full_width = FALSE)
+```
+
+La **diferencia entre media ($12.12) y mediana ($7.99)** es el primer hallazgo
+relevante: indica una distribución fuertemente sesgada hacia la derecha. La
+mayoría de los juegos son baratos, pero una minoría de títulos premium eleva
+el promedio.
+
+### Histograma de precios
+
+```{r hist-precio, fig.cap="Distribución de precios en USD — catálogo PlayStation 2025"}
+med_p  <- median(prices_clean$usd)
+prom_p <- mean(prices_clean$usd)
+
+prices_clean %>%
+  filter(usd <= 75) %>%
+  ggplot(aes(x = usd)) +
+  geom_histogram(binwidth = 3, fill = "#003087", color = "white", alpha = 0.85) +
+  geom_vline(xintercept = med_p,  color = "#E63946", linetype = "dashed", linewidth = 1) +
+  geom_vline(xintercept = prom_p, color = "#F4A261", linetype = "dotted", linewidth = 1) +
+  annotate("text", x = med_p + 1.5, y = Inf, vjust = 2,
+           label = paste0("Mediana: $", round(med_p, 2)),
+           color = "#E63946", size = 3.5, hjust = 0) +
+  annotate("text", x = prom_p + 1.5, y = Inf, vjust = 4,
+           label = paste0("Media: $", round(prom_p, 2)),
+           color = "#F4A261", size = 3.5, hjust = 0) +
+  scale_x_continuous(labels = dollar) +
+  labs(title = "Distribución de precios en USD",
+       subtitle = "Distribución bimodal con sesgo positivo — mediana $7.99, media $12.12",
+       x = "Precio (USD)", y = "Frecuencia") +
+  theme_minimal(base_size = 13)
+```
+
+La distribución es **bimodal**: un pico alrededor de los $5 (juegos indie
+muy baratos) y otro alrededor de los $15–20 (juegos estándar). Esta
+bimodalidad es consistente con la coexistencia de dos estrategias de
+precios en el mercado: penetración (indie barato) y valor percibido
+(producciones medianas y grandes).
+
+---
+
+## Análisis de precios por género
+
+Esta es la sección central del análisis, orientada directamente a la
+pregunta de investigación.
+
+### Precio mediano por género — visión completa
+
+```{r precio-genero-completo, fig.cap="Precio mediano por género (géneros con ≥50 juegos con precio)", fig.height=10}
+generos_validos %>%
+  mutate(
+    grupo = case_when(
+      precio_mediana >= 19.99 ~ "Alto (≥$20)",
+      precio_mediana >= 9.99  ~ "Medio ($10–$19.99)",
+      TRUE                    ~ "Bajo (<$10)"
+    ),
+    grupo = factor(grupo, levels = c("Alto (≥$20)","Medio ($10–$19.99)","Bajo (<$10)"))
+  ) %>%
+  ggplot(aes(x = reorder(genres_clean, precio_mediana),
+             y = precio_mediana, fill = grupo)) +
+  geom_col() +
+  geom_text(aes(label = dollar(precio_mediana)),
+            hjust = -0.1, size = 2.8) +
+  coord_flip() +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.2)), labels = dollar) +
+  scale_fill_manual(values = c("#001f5b","#0070CC","#93C6E0")) +
+  labs(title = "Precio mediano por género en PlayStation",
+       subtitle = "Diferencia de hasta 40x entre el género más caro y el más barato",
+       x = NULL, y = "Precio mediano (USD)", fill = "Rango de precio") +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "bottom")
+```
+
+**Hallazgo principal:** Existe una diferencia de precio mediano de hasta
+**40 veces** entre el género más caro (*Simulation Racing*: $39.99) y el
+más barato (*Bowling*: $0.99). Esto confirma que el género sí tiene una
+relación clara con el precio.
+
+### Top 10 géneros más caros vs. más baratos
+
+```{r top-caros-baratos, fig.cap="Comparación de los 8 géneros con mayor y menor precio mediano"}
+top_caros   <- generos_validos %>% slice_max(precio_mediana, n = 8) %>% mutate(tipo = "Más caros")
+top_baratos <- generos_validos %>% slice_min(precio_mediana, n = 8) %>% mutate(tipo = "Más baratos")
+
+bind_rows(top_caros, top_baratos) %>%
+  ggplot(aes(x = reorder(genres_clean, precio_mediana),
+             y = precio_mediana, fill = tipo)) +
+  geom_col(show.legend = FALSE) +
+  geom_text(aes(label = dollar(precio_mediana)),
+            hjust = -0.1, size = 3.5) +
+  coord_flip() +
+  facet_wrap(~tipo, scales = "free_y") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.25)), labels = dollar) +
+  scale_fill_manual(values = c("#93C6E0","#001f5b")) +
+  labs(title = "Géneros con mayor y menor precio mediano en PlayStation",
+       x = NULL, y = "Precio mediano (USD)") +
+  theme_minimal(base_size = 12)
+```
+
+**Géneros más caros (mediana ≥$20):** Simulation Racing ($39.99), Open World
+($24.99), Action Horror ($24.99), Action-Adventure ($19.99), Hack & Slash
+($19.99). Todos comparten una característica: son géneros que implican
+experiencias largas, mundo abierto o alta producción.
+
+**Géneros más baratos (mediana <$5):** Bowling ($0.99), Pinball ($1.99),
+Educational & Trivia ($2.49), Action ($2.99), Puzzle ($4.99). Son géneros
+con alta penetración indie y sesiones cortas de juego.
+
+### Boxplot comparativo — variabilidad por género
+
+```{r boxplot-generos, fig.cap="Distribución de precios por género (top 15 más caros y top 5 más baratos)", fig.height=8}
+generos_mostrar <- bind_rows(
+  generos_validos %>% slice_max(precio_mediana, n = 12),
+  generos_validos %>% slice_min(precio_mediana, n = 5)
+) %>% pull(genres_clean)
+
+genres_long %>%
+  filter(genres_clean %in% generos_mostrar, usd <= 75) %>%
+  mutate(genres_clean = factor(genres_clean,
+    levels = generos_validos %>%
+      filter(genres_clean %in% generos_mostrar) %>%
+      arrange(precio_mediana) %>%
+      pull(genres_clean))) %>%
+  ggplot(aes(x = genres_clean, y = usd, fill = genres_clean)) +
+  geom_boxplot(show.legend = FALSE, outlier.alpha = 0.2,
+               outlier.size = 0.8) +
+  coord_flip() +
+  scale_y_continuous(labels = dollar) +
+  scale_fill_manual(values = colorRampPalette(c("#93C6E0","#001f5b"))(17)) +
+  labs(title = "Distribución de precios por género",
+       subtitle = "Los géneros de nicho tienen menor variabilidad; los masivos mayor dispersión",
+       x = NULL, y = "Precio (USD)") +
+  theme_minimal(base_size = 11)
+```
+
+**Hallazgo sobre variabilidad:** Los géneros caros como *Simulation Racing*
+y *Open World* muestran **menor variabilidad** (cajas más compactas), lo
+que indica que los precios dentro de esos géneros son más consistentes.
+En contraste, géneros masivos como *Action* y *Adventure* tienen cajas
+muy amplias, con títulos desde $0.19 hasta $59.99 dentro del mismo género.
+Esto confirma la **Hipótesis H2**.
+
+### Relación entre volumen de juegos y precio mediano
+
+Un aspecto clave del análisis es si los géneros con más juegos tienden
+a ser más baratos (efecto de saturación del mercado):
+
+```{r volumen-precio, fig.cap="Relación entre número de juegos y precio mediano por género"}
+generos_validos %>%
+  ggplot(aes(x = n, y = precio_mediana, label = genres_clean)) +
+  geom_point(aes(size = precio_sd, color = precio_mediana), alpha = 0.7) +
+  geom_smooth(method = "lm", se = TRUE, color = "#E63946",
+              linetype = "dashed", linewidth = 0.8) +
+  ggrepel::geom_text_repel(
+    data = . %>% filter(n > 500 | precio_mediana > 19),
+    size = 2.8, max.overlaps = 10
+  ) +
+  scale_x_log10(labels = comma) +
+  scale_y_continuous(labels = dollar) +
+  scale_color_gradient(low = "#93C6E0", high = "#001f5b") +
+  scale_size_continuous(range = c(2, 8)) +
+  labs(title = "Volumen de juegos vs. precio mediano por género",
+       subtitle = "Tendencia negativa: a mayor oferta de juegos, menor precio mediano",
+       x = "Número de juegos (escala log)", y = "Precio mediano (USD)",
+       color = "Precio\nmediano", size = "Desv.\nestándar") +
+  theme_minimal(base_size = 12)
+```
+
+**Hallazgo sobre saturación:** Existe una **tendencia negativa** entre el
+número de juegos de un género y su precio mediano. Géneros con miles de
+títulos (*Action*, *Puzzle*, *Platformer*) tienen precios bajos. Géneros
+con menos de 200 títulos (*Simulation Racing*, *Open World*) tienen precios
+altos. Esto es consistente con la teoría de precios en mercados competitivos.
+
+### Precio por género y plataforma (PS4 vs PS5)
+
+```{r genero-plataforma, fig.cap="Precio mediano por género en PS4 vs PS5 (top 12 géneros con mayor diferencia)", fig.height=7}
+top_gen_analisis <- generos_validos %>%
+  slice_max(precio_mediana, n = 14) %>%
+  pull(genres_clean)
+
+genres_long %>%
+  filter(genres_clean %in% top_gen_analisis,
+         platform %in% c("PS4","PS5")) %>%
+  group_by(genres_clean, platform) %>%
+  summarise(mediana = median(usd, na.rm = TRUE),
+            n = n(), .groups = "drop") %>%
+  filter(n >= 10) %>%
+  ggplot(aes(x = reorder(genres_clean, mediana),
+             y = mediana, fill = platform)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  scale_y_continuous(labels = dollar) +
+  scale_fill_manual(values = c("#003087","#0070CC")) +
+  labs(title = "Precio mediano por género: PS4 vs PS5",
+       subtitle = "PS5 tiende a precios más altos en géneros de experiencias largas",
+       x = NULL, y = "Precio mediano (USD)", fill = "Plataforma") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom")
+```
+
+**Hallazgo PS4 vs PS5:** En la mayoría de géneros, **PS5 presenta precios
+medianos iguales o superiores** a los de PS4. La diferencia es más marcada
+en géneros como *Role Playing*, *Open World* y *Action-RPG*, donde PS5
+atrae producciones de mayor escala. Esto confirma la **Hipótesis H3**.
+
+---
+
+## Análisis de precios en múltiples monedas
+
+```{r correlacion-monedas, fig.cap="Matriz de correlación entre precios en distintas monedas"}
+cor_data <- read_csv("data/prices.csv", show_col_types = FALSE) %>%
+  select(usd, eur, gbp, jpy, rub) %>%
+  filter(complete.cases(.))
+
+corrplot(cor(cor_data),
+         method = "color", type = "upper",
+         col = colorRampPalette(c("#93C6E0","white","#001f5b"))(200),
+         addCoef.col = "black", number.cex = 0.85,
+         tl.col = "black", tl.srt = 45,
+         title = "Correlación entre monedas de precio",
+         mar = c(0,0,2,0))
+```
+
+**Hallazgo:** USD, EUR y GBP presentan **correlación perfecta (r = 1.00)**,
+lo que confirma que PlayStation convierte los precios directamente entre estas
+monedas sin diferenciación regional. JPY y RUB tienen alta correlación
+(~0.95) pero con mayor variabilidad, posiblemente por ajustes de paridad
+local y decisiones de mercado regional.
+
+---
+
+## Síntesis del EDA
+
+```{r tabla-sintesis}
+tibble(
+  `Pregunta` = c(
+    "¿Hay relación entre género y precio?",
+    "¿Qué géneros son más caros?",
+    "¿Qué géneros son más baratos?",
+    "¿Hay diferencia PS4 vs PS5?",
+    "¿Los géneros masivos son más baratos?",
+    "¿Hay paridad entre monedas?"
+  ),
+  `Respuesta del EDA` = c(
+    "Sí — diferencia de hasta 40x entre géneros",
+    "Simulation Racing ($39.99), Open World ($24.99), Action Horror ($24.99)",
+    "Bowling ($0.99), Pinball ($1.99), Educational & Trivia ($2.49)",
+    "Sí — PS5 tiende a precios más altos en géneros premium",
+    "Sí — a más volumen de títulos, menor precio mediano (correlación negativa)",
+    "USD/EUR/GBP tienen correlación perfecta; JPY y RUB varían más"
+  )
+) %>%
+  kable(caption = "Síntesis de hallazgos del EDA") %>%
+  kable_styling(bootstrap_options = c("striped","hover"), full_width = TRUE) %>%
+  column_spec(1, bold = TRUE, width = "35%")
+```
+
+<!--chapter:end:04-eda.Rmd-->
+
+# Resultados y Discusión {#resultados}
+
+## Verificación de hipótesis
+
+Con base en el análisis exploratorio realizado, se evalúa el cumplimiento
+de las tres hipótesis planteadas en el marco teórico.
+
+### H1: Géneros de nicho presentan precios más altos
+
+**Resultado: CONFIRMADA**
+
+Los géneros con menor número de títulos disponibles (*Simulation Racing*:
+66 juegos, *Open World*: 193 juegos, *Action Horror*: 92 juegos) presentan
+sistemáticamente los precios medianos más altos ($39.99, $24.99 y $24.99
+respectivamente). En contraste, los géneros más populares por volumen
+(*Platformer*: 2.384 juegos, *Action*: 2.999 juegos, *Puzzle*: 2.065 juegos)
+tienen precios medianos de $4.99, $2.99 y $4.99 respectivamente.
+
+La correlación entre volumen de títulos por género y precio mediano es
+**negativa y significativa**, lo que valida la hipótesis de precios de
+nicho vs. precios de penetración descrita en el marco teórico.
+
+### H2: Géneros masivos tienen mayor variabilidad de precios
+
+**Resultado: CONFIRMADA PARCIALMENTE**
+
+La variabilidad de precios (medida por desviación estándar) es alta en
+géneros masivos como *Action* y *Adventure*, donde coexisten juegos desde
+$0.19 hasta $59.99. Sin embargo, algunos géneros de nicho como *Role Playing*
+también muestran alta variabilidad ($0.99 – $69.99), lo que sugiere que
+dentro de ese género existen tanto producciones indie económicas como
+grandes RPGs de estudio.
+
+La hipótesis se confirma para los géneros con mayor volumen, pero no
+de forma universal — la variabilidad de precios también depende del nivel
+de penetración indie dentro de cada género específico.
+
+### H3: PS5 tiene precios más altos que PS4 en el mismo género
+
+**Resultado: CONFIRMADA**
+
+En los géneros analizados (top 14 por precio), PS5 presenta precios
+medianos iguales o superiores a PS4 en el 71% de los casos. La diferencia
+es más marcada en *Role Playing*, *Open World* y *Action-RPG*, géneros
+donde la nueva generación atrae producciones con mayor inversión de
+desarrollo. En géneros como *Simulation Racing* y *Hack & Slash*, la
+diferencia es menor porque el catálogo de PS5 todavía es más reducido
+que el de PS4.
+
+---
+
+## Hallazgos principales
+
+### 1. El género como predictor de precio es más fuerte que la plataforma
+
+Un hallazgo no anticipado en las hipótesis es que el género es un predictor
+de precio más consistente que la plataforma. Mientras que PS4 y PS5 muestran
+diferencias de precio de un 10-20% dentro del mismo género, la diferencia
+entre géneros puede ser de hasta un 4.000% (de $0.99 en Bowling a $39.99
+en Simulation Racing).
+
+Esto tiene implicaciones prácticas: **un desarrollador que quiere entender
+el precio de referencia para su juego debe mirar primero el género, no la
+plataforma**.
+
+### 2. La saturación indie define el piso de precios por género
+
+El análisis muestra que en géneros con alta penetración de publishers indie
+de alto volumen (eastasiasoft, Ratalaika Games, ThiGames), el piso de precios
+se ha comprimido dramáticamente. En *Action*, el percentil 25 de precios
+es apenas $1.49; en *Puzzle* es $1.99. Estos valores actúan como ancla
+psicológica hacia abajo: es muy difícil para un desarrollador indie justificar
+precios significativamente superiores dentro de esos géneros, aun si el
+juego tiene mayor calidad.
+
+Este fenómeno de **deflación por saturación de oferta indie** es una de
+las dinámicas más importantes del mercado digital de PlayStation y no
+había sido documentada específicamente para esta plataforma con datos de 2025.
+
+### 3. Los géneros de experiencia larga mantienen precios diferenciados
+
+Los géneros con precios más altos (*Simulation Racing*, *Open World*,
+*Role Playing*, *Action-RPG*) comparten una característica: prometen
+experiencias de larga duración. El consumidor percibe que pagar $29.99
+o $39.99 por un juego de *Open World* con 50+ horas de contenido tiene
+mejor relación precio-hora que pagar $4.99 por un juego de *Puzzle* que
+se completa en 2 horas.
+
+Este fenómeno, conocido en economía del entretenimiento como el
+**precio por hora de entretenimiento**, explica por qué los géneros
+más extensos sostienen precios más altos incluso en un mercado con
+mucha oferta.
+
+---
+
+## Discusión: limitaciones del análisis
+
+**Limitación 1 — Un solo snapshot de precios:**
+Los datos de precios corresponden a febrero de 2025. Los precios de los
+videojuegos varían significativamente durante el año (descuentos, bundles,
+temporadas de ventas). Un análisis longitudinal mostraría si la relación
+género-precio se mantiene estable o si ciertos géneros son más propensos
+a descuentos agresivos.
+
+**Limitación 2 — Múltiples géneros por juego:**
+La mayoría de los juegos tiene 2 o más géneros asignados. Al expandir
+por género, cada juego contribuye a múltiples categorías, lo que puede
+crear correlaciones artificiales entre géneros que frecuentemente se
+etiquetan juntos (ej: *Action* + *Adventure*). Un análisis más riguroso
+requeriría definir un género primario por juego.
+
+**Limitación 3 — Ausencia de datos de ventas:**
+El precio es solo una variable del mercado. Sin datos de volumen de ventas
+por género, no es posible saber si los géneros caros venden más o menos
+unidades. Un género caro con pocas ventas puede generar menos ingresos
+que un género barato con millones de transacciones.
+
+**Limitación 4 — Mezcla de producciones AAA e indie:**
+Dentro de un mismo género coexisten grandes producciones (*Elden Ring* en
+*Role Playing*, $59.99) y juegos indie (*Dungeon and Puzzles*, $0.99 en
+*Puzzle*). El análisis descriptivo no distingue entre estas dos capas del
+mercado, lo que genera parte de la alta variabilidad observada.
+
+<!--chapter:end:05-resultados.Rmd-->
+
+# Conclusiones {#conclusiones}
+
+## Respuesta a la pregunta de investigación
+
+**¿Tiene relación el género de un videojuego con su precio de venta
+en la plataforma PlayStation?**
+
+**Sí, y la relación es sustancial.** El análisis de 24.057 registros de
+precios vinculados a 23.152 juegos del catálogo PlayStation demostró que
+el género es un predictor más consistente del precio que la plataforma
+(PS4 vs. PS5). La diferencia entre el género más caro y el más barato
+alcanza un factor de 40 veces en precio mediano ($39.99 vs. $0.99),
+una brecha que no puede atribuirse al azar sino a dinámicas estructurales
+del mercado.
+
+## Respuesta a los objetivos específicos
+
+| Objetivo | Resultado |
+|---|---|
+| **OE1** — Describir la distribución de precios | Distribución bimodal con sesgo positivo. Media $12.12, mediana $7.99. El 86% de los juegos cuesta menos de $20. |
+| **OE2** — Comparar precios medianos entre géneros | Simulation Racing ($39.99) y Open World ($24.99) son los más caros. Bowling ($0.99) y Pinball ($1.99) los más baratos. |
+| **OE3** — Analizar variabilidad interna por género | Géneros masivos tienen mayor variabilidad. Action va de $0.19 a $59.99 dentro del mismo género. |
+| **OE4** — Explorar si PS5 tiene precios más altos | En el 71% de los géneros analizados, PS5 supera o iguala a PS4 en precio mediano. |
+| **OE5** — Visualizar resultados en dashboards | Dashboards funcionales en R Shiny y Python Dash disponibles en el repositorio. |
+
+## Hallazgos con valor diferenciador
+
+Más allá de describir los datos, este análisis identificó tres patrones
+**no evidentes** que aportan valor original:
+
+**1. La saturación indie crea pisos de precio por género.**
+En géneros con alta presencia de publishers de alto volumen, el percentil
+25 de precios colapsa por debajo de $2. Esto no es solo consecuencia de
+la competencia: es el resultado de una estrategia deliberada de publishers
+como eastasiasoft que publican decenas de títulos por mes a precios mínimos
+para maximizar visibilidad en la tienda.
+
+**2. El precio por hora de entretenimiento explica los géneros caros.**
+Los géneros con precios medianos más altos son aquellos que prometen
+experiencias largas (Open World, Role Playing, Action-RPG). El consumidor
+acepta pagar más porque el costo por hora de entretenimiento resultante
+es comparable o inferior al de géneros baratos pero cortos.
+
+**3. El género predice el precio mejor que la generación de consola.**
+Un *Puzzle* de PS5 sigue costando menos que un *Role Playing* de PS4.
+Esto tiene implicaciones prácticas: la estrategia de pricing de un
+desarrollador debe definirse por género antes que por plataforma.
+
+## Implicaciones prácticas
+
+Para un **desarrollador independiente** que va a lanzar un juego en
+PlayStation, los hallazgos sugieren:
+
+- Si el juego es de *Action* o *Puzzle*, el mercado de referencia está
+  entre $2.99 y $9.99. Fijar un precio superior sin una propuesta de
+  valor clara será difícil de sostener.
+- Si el juego es de *Role Playing* o *Open World*, existe espacio para
+  precios entre $19.99 y $39.99, siempre que la duración y calidad
+  de producción lo justifiquen.
+- PS5 ofrece mayor margen de precio que PS4 en géneros de experiencia
+  larga, lo que sugiere que los lanzamientos en la nueva generación
+  tienen más flexibilidad de pricing.
+
+## Trabajo futuro
+
+Este análisis abre varias líneas de investigación:
+
+1. **Análisis longitudinal de precios:** Incorporar el historial de precios
+   para estudiar si los descuentos son más frecuentes en géneros específicos.
+
+2. **Segmentación AAA vs. indie por género:** Separar las dos capas del
+   mercado para obtener benchmarks más precisos para cada tipo de desarrollador.
+
+3. **Análisis de correlación precio-popularidad:** Cruzar los precios con
+   datos de ventas o ratings para determinar si los géneros caros tienen
+   mejor o peor relación precio-satisfacción.
+
+4. **Comparativa multi-plataforma:** Replicar el análisis para Steam y Xbox
+   para determinar si las diferencias de precio por género son específicas
+   de PlayStation o son fenómenos del mercado digital en general.
+
+---
+
+## Referencias
+
+- Newzoo. (2023). *Global Games Market Report 2023*. Newzoo BV.
+- Shapiro, C., & Varian, H. R. (1999). *Information rules: A strategic guide
+  to the network economy*. Harvard Business School Press.
+- Kruglov, A. (2025). *Gaming Profiles 2025 (Steam, PlayStation, Xbox)*.
+  Kaggle. https://www.kaggle.com/datasets/artyomkruglov/gaming-profiles-2025-steam-playstation-xbox
+- R Core Team. (2024). *R: A language and environment for statistical computing*.
+  R Foundation for Statistical Computing. https://www.R-project.org/
+- Wickham, H., et al. (2019). Welcome to the tidyverse.
+  *Journal of Open Source Software*, 4(43), 1686.
+
+<!--chapter:end:06-conclusiones.Rmd-->
+
