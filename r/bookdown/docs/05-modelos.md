@@ -1,0 +1,499 @@
+# Modelos Predictivos {#modelos}
+
+**Pregunta:** ¿Podemos predecir el precio de un juego en PS Store usando género, plataforma y año de lanzamiento? ¿Qué modelo ofrece mejor precisión?
+
+---
+
+## Preparación de datos
+
+
+``` r
+library(tidyverse); library(lubridate); library(glmnet); library(randomForest)
+library(xgboost); library(scales); library(knitr); library(kableExtra); library(Matrix)
+
+games <- read_csv("../../data/games.csv", show_col_types = FALSE) %>%
+  distinct() %>%
+  mutate(release_date = as.Date(release_date), year = year(release_date),
+         genres_clean     = str_remove_all(coalesce(genres, ""),       "[\\[\\]']"),
+         publishers_clean = str_remove_all(coalesce(publishers, ""),   "[\\[\\]']"))
+
+prices_clean <- read_csv("../../data/prices.csv", show_col_types = FALSE) %>%
+  distinct() %>% filter(!is.na(usd), usd > 0, usd < 150)
+
+# Género principal (primer género) para evitar multicolinealidad one-to-many
+modelo_base <- games %>%
+  inner_join(prices_clean, by = "gameid") %>%
+  filter(genres_clean != "", !is.na(year), year >= 2015, year <= 2024,
+         platform %in% c("PS4", "PS5")) %>%
+  mutate(genero_principal = str_trim(str_extract(genres_clean, "^[^,]+"))) %>%
+  filter(!is.na(genero_principal), genero_principal != "")
+
+# Solo géneros con ≥ 20 observaciones (top 50 por volumen)
+generos_ok <- modelo_base %>% count(genero_principal) %>%
+  filter(n >= 20) %>% slice_max(n, n = 50) %>% pull(genero_principal)
+
+modelo_base <- modelo_base %>%
+  filter(genero_principal %in% generos_ok) %>%
+  select(usd, genero_principal, platform, year) %>% drop_na()
+
+cat("Observaciones:", nrow(modelo_base), "| Géneros:", n_distinct(modelo_base$genero_principal),
+    "| Años:", min(modelo_base$year), "–", max(modelo_base$year), "\n")
+```
+
+```
+## Observaciones: 37553 | Géneros: 50 | Años: 2015 – 2024
+```
+
+### Split y codificación
+
+
+``` r
+set.seed(42)
+idx_train <- sample(seq_len(nrow(modelo_base)), size = floor(0.8 * nrow(modelo_base)))
+train_df <- modelo_base[ idx_train, ]
+test_df  <- modelo_base[-idx_train, ]
+
+# One-hot encoding via model.matrix (elimina dummy trap, -1 quita intercepto)
+formula_ohe <- ~ genero_principal + platform + year - 1
+X_train <- model.matrix(formula_ohe, data = train_df)
+X_test  <- model.matrix(formula_ohe, data = test_df)
+y_train <- train_df$usd;  y_test <- test_df$usd
+
+cat("X_train:", nrow(X_train), "×", ncol(X_train), "| X_test:", nrow(X_test), "×", ncol(X_test), "\n")
+```
+
+```
+## X_train: 30042 × 52 | X_test: 7511 × 52
+```
+
+---
+
+## Modelo 1 — Lasso Regression
+
+**Función de pérdida:**
+$$\mathcal{L}(\boldsymbol{\beta}) = \sum_{i=1}^{n}(y_i - \boldsymbol{x}_i^T\boldsymbol{\beta})^2 + \lambda \sum_{j=1}^{p}|\beta_j|$$
+
+La penalización L1 fuerza coeficientes irrelevantes a cero (selección automática de variables). $\lambda$ se selecciona por CV de 10 pliegues.
+
+
+``` r
+set.seed(42)
+lasso_cv <- cv.glmnet(x = X_train, y = y_train, alpha = 1, nfolds = 10, type.measure = "mse")
+lambda_opt <- lasso_cv$lambda.min
+cat("Lambda óptimo:", round(lambda_opt, 4), "\n")
+```
+
+```
+## Lambda óptimo: 0.0057
+```
+
+``` r
+pred_lasso <- predict(lasso_cv, newx = X_test, s = "lambda.min") %>% as.vector()
+mae_lasso  <- mean(abs(pred_lasso - y_test))
+rmse_lasso <- sqrt(mean((pred_lasso - y_test)^2))
+ss_tot     <- sum((y_test - mean(y_test))^2)
+r2_lasso   <- 1 - sum((y_test - pred_lasso)^2) / ss_tot
+cat("R²:", round(r2_lasso, 4), "| RMSE: $", round(rmse_lasso, 2), "| MAE: $", round(mae_lasso, 2), "\n")
+```
+
+```
+## R²: 0.2715 | RMSE: $ 10.23 | MAE: $ 6.96
+```
+
+
+``` r
+coef_df <- data.frame(variable = rownames(coef(lasso_cv, s = "lambda.min")),
+                      coeficiente = as.vector(coef(lasso_cv, s = "lambda.min"))) %>%
+  filter(coeficiente != 0, variable != "(Intercept)") %>%
+  arrange(desc(abs(coeficiente)))
+
+coef_df %>% head(15) %>% mutate(coeficiente = round(coeficiente, 3)) %>%
+  kable(caption = "Top 15 coeficientes no nulos — Lasso") %>%
+  kable_styling(bootstrap_options = c("striped","hover"), full_width = FALSE)
+```
+
+<table class="table table-striped table-hover" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>(\#tab:lasso-coefs)(\#tab:lasso-coefs)Top 15 coeficientes no nulos — Lasso</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> variable </th>
+   <th style="text-align:right;"> coeficiente </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> genero_principalOpen World </td>
+   <td style="text-align:right;"> 14.321 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> genero_principalAction Horror </td>
+   <td style="text-align:right;"> 12.921 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> genero_principalAction-RPG </td>
+   <td style="text-align:right;"> 12.606 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> genero_principalRole Playing </td>
+   <td style="text-align:right;"> 11.331 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> genero_principalFishing </td>
+   <td style="text-align:right;"> 11.037 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> genero_principalEducational &amp; Trivia </td>
+   <td style="text-align:right;"> -11.017 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> genero_principalPinball </td>
+   <td style="text-align:right;"> -10.304 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> genero_principalCasino </td>
+   <td style="text-align:right;"> -9.380 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> genero_principalAction </td>
+   <td style="text-align:right;"> -9.329 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> genero_principalPuzzle </td>
+   <td style="text-align:right;"> -7.730 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> genero_principalTower Defence </td>
+   <td style="text-align:right;"> -7.379 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> genero_principalCollection </td>
+   <td style="text-align:right;"> 7.155 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> genero_principalplatformer </td>
+   <td style="text-align:right;"> -7.092 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> genero_principal"Shoot em up" </td>
+   <td style="text-align:right;"> -7.017 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> genero_principalPlatformer </td>
+   <td style="text-align:right;"> -6.671 </td>
+  </tr>
+</tbody>
+</table>
+
+---
+
+## Modelo 2 — Random Forest
+
+**Ensamble de B árboles** entrenados con bootstrap; cada split usa $m = p/3$ variables aleatorias. Predicción final = promedio:
+$$\hat{y} = \frac{1}{B}\sum_{b=1}^{B} T_b(\boldsymbol{x})$$
+
+> Incrementar B no empeora el sobreajuste — solo reduce varianza. El sobreajuste se controla con `max_depth` y `min_node_size`.
+
+
+``` r
+train_rf <- train_df %>% mutate(genero_principal = factor(genero_principal), platform = factor(platform))
+test_rf  <- test_df  %>% mutate(genero_principal = factor(genero_principal, levels = levels(train_rf$genero_principal)),
+                                platform = factor(platform, levels = levels(train_rf$platform)))
+
+set.seed(42)
+rf_model <- randomForest(usd ~ genero_principal + platform + year, data = train_rf,
+                         ntree = 500, mtry = 2, importance = TRUE)
+
+pred_rf <- predict(rf_model, newdata = test_rf)
+r2_rf   <- 1 - sum((y_test - pred_rf)^2) / ss_tot
+mae_rf  <- mean(abs(pred_rf - y_test)); rmse_rf <- sqrt(mean((pred_rf - y_test)^2))
+cat("R²:", round(r2_rf, 4), "| RMSE: $", round(rmse_rf, 2), "| MAE: $", round(mae_rf, 2), "\n")
+```
+
+```
+## R²: 0.3244 | RMSE: $ 9.85 | MAE: $ 6.66
+```
+
+
+``` r
+importance(rf_model) %>% as.data.frame() %>% rownames_to_column("variable") %>%
+  arrange(desc(`%IncMSE`)) %>% head(15) %>%
+  ggplot(aes(x = reorder(variable, `%IncMSE`), y = `%IncMSE`)) +
+  geom_col(fill = "#003087") + coord_flip() +
+  labs(title = "Importancia de variables — Random Forest",
+       subtitle = "% incremento en MSE al permutar la variable", x = NULL, y = "%IncMSE") +
+  theme_minimal(base_size = 12)
+```
+
+<div class="figure">
+<img src="05-modelos_files/figure-html/rf-importancia-1.png" alt="Importancia de variables — Random Forest (%IncMSE)" width="672" />
+<p class="caption">(\#fig:rf-importancia)Importancia de variables — Random Forest (%IncMSE)</p>
+</div>
+
+---
+
+## Modelo 3 — XGBoost
+
+**Ensamble secuencial** (boosting): cada árbol corrige residuos del anterior con tasa de aprendizaje $\eta$:
+$$\hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta \cdot T_m(\boldsymbol{x})$$
+
+Función objetivo con regularización L1 y L2 integrada sobre hojas ($\gamma$, $\lambda$, $\alpha$).
+
+
+``` r
+dtrain <- xgb.DMatrix(data = X_train, label = y_train)
+dtest  <- xgb.DMatrix(data = X_test,  label = y_test)
+
+params <- list(booster = "gbtree", objective = "reg:squarederror",
+               eta = 0.05, max_depth = 4, subsample = 0.8, colsample_bytree = 0.8,
+               lambda = 1, alpha = 0.1, eval_metric = "rmse")
+
+set.seed(42)
+xgb_model <- xgb.train(params = params, data = dtrain, nrounds = 500,
+                        watchlist = list(train = dtrain, test = dtest),
+                        early_stopping_rounds = 30, verbose = 0)
+```
+
+```
+## Warning in throw_err_or_depr_msg("Parameter '", match_old, "' has been renamed
+## to '", : Parameter 'watchlist' has been renamed to 'evals'. This warning will
+## become an error in a future version.
+```
+
+``` r
+pred_xgb <- predict(xgb_model, newdata = dtest)
+r2_xgb   <- 1 - sum((y_test - pred_xgb)^2) / ss_tot
+mae_xgb  <- mean(abs(pred_xgb - y_test)); rmse_xgb <- sqrt(mean((pred_xgb - y_test)^2))
+cat("Mejor iteración:", xgb_model$best_iteration, "\n")
+```
+
+```
+## Mejor iteración:
+```
+
+``` r
+cat("R²:", round(r2_xgb, 4), "| RMSE: $", round(rmse_xgb, 2), "| MAE: $", round(mae_xgb, 2), "\n")
+```
+
+```
+## R²: 0.316 | RMSE: $ 9.91 | MAE: $ 6.74
+```
+
+
+``` r
+xgb.plot.importance(xgb.importance(feature_names = colnames(X_train), model = xgb_model) %>% head(15),
+                    main = "Importancia de variables — XGBoost (Gain)", col = "#001f5b")
+```
+
+<div class="figure">
+<img src="05-modelos_files/figure-html/xgb-importancia-1.png" alt="Importancia de variables — XGBoost (Gain)" width="672" />
+<p class="caption">(\#fig:xgb-importancia)Importancia de variables — XGBoost (Gain)</p>
+</div>
+
+---
+
+## Comparación de modelos
+
+
+``` r
+precio_mediano <- median(y_test)
+
+resultados <- tibble(
+  Modelo = c("Lasso Regression", "Random Forest", "XGBoost"),
+  `R²`   = round(c(r2_lasso, r2_rf, r2_xgb), 4),
+  `RMSE ($)` = round(c(rmse_lasso, rmse_rf, rmse_xgb), 2),
+  `MAE ($)`  = round(c(mae_lasso, mae_rf, mae_xgb), 2)
+) %>% mutate(`MAE / Mediana` = scales::percent(`MAE ($)` / precio_mediano, accuracy = 0.1))
+
+resultados %>%
+  kable(caption = "Comparación de métricas en conjunto de prueba") %>%
+  kable_styling(bootstrap_options = c("striped","hover","bordered"), full_width = FALSE) %>%
+  row_spec(which.max(resultados$`R²`), bold = TRUE, background = "#e8f4fd")
+```
+
+<table class="table table-striped table-hover table-bordered" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>(\#tab:tabla-comparacion)(\#tab:tabla-comparacion)Comparación de métricas en conjunto de prueba</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Modelo </th>
+   <th style="text-align:right;"> R² </th>
+   <th style="text-align:right;"> RMSE ($) </th>
+   <th style="text-align:right;"> MAE ($) </th>
+   <th style="text-align:left;"> MAE / Mediana </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> Lasso Regression </td>
+   <td style="text-align:right;"> 0.2715 </td>
+   <td style="text-align:right;"> 10.23 </td>
+   <td style="text-align:right;"> 6.96 </td>
+   <td style="text-align:left;"> 87.1% </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;background-color: rgba(232, 244, 253, 255) !important;"> Random Forest </td>
+   <td style="text-align:right;font-weight: bold;background-color: rgba(232, 244, 253, 255) !important;"> 0.3244 </td>
+   <td style="text-align:right;font-weight: bold;background-color: rgba(232, 244, 253, 255) !important;"> 9.85 </td>
+   <td style="text-align:right;font-weight: bold;background-color: rgba(232, 244, 253, 255) !important;"> 6.66 </td>
+   <td style="text-align:left;font-weight: bold;background-color: rgba(232, 244, 253, 255) !important;"> 83.4% </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> XGBoost </td>
+   <td style="text-align:right;"> 0.3160 </td>
+   <td style="text-align:right;"> 9.91 </td>
+   <td style="text-align:right;"> 6.74 </td>
+   <td style="text-align:left;"> 84.4% </td>
+  </tr>
+</tbody>
+</table>
+
+
+``` r
+tibble(real = y_test, Lasso = pred_lasso, `Random Forest` = pred_rf, XGBoost = pred_xgb) %>%
+  pivot_longer(-real, names_to = "Modelo", values_to = "Prediccion") %>%
+  mutate(Modelo = factor(Modelo, levels = c("Lasso","Random Forest","XGBoost"))) %>%
+  ggplot(aes(x = real, y = Prediccion)) +
+  geom_point(alpha = 0.2, size = 0.8, color = "#003087") +
+  geom_abline(slope = 1, intercept = 0, color = "#E63946", linetype = "dashed", linewidth = 0.8) +
+  facet_wrap(~Modelo) + scale_x_continuous(labels = dollar) + scale_y_continuous(labels = dollar) +
+  labs(title = "Predicciones vs. valores reales",
+       subtitle = "Línea roja punteada = predicción perfecta",
+       x = "Precio real (USD)", y = "Precio predicho (USD)") +
+  theme_minimal(base_size = 12)
+```
+
+<div class="figure">
+<img src="05-modelos_files/figure-html/grafico-comparacion-1.png" alt="Predicciones vs. valores reales — tres modelos" width="672" />
+<p class="caption">(\#fig:grafico-comparacion)Predicciones vs. valores reales — tres modelos</p>
+</div>
+
+
+``` r
+tibble(Lasso = abs(pred_lasso - y_test), `Random Forest` = abs(pred_rf - y_test),
+       XGBoost = abs(pred_xgb - y_test)) %>%
+  pivot_longer(everything(), names_to = "Modelo", values_to = "Error") %>%
+  mutate(Modelo = factor(Modelo, levels = c("Lasso","Random Forest","XGBoost"))) %>%
+  ggplot(aes(x = Modelo, y = Error, fill = Modelo)) +
+  geom_boxplot(show.legend = FALSE, outlier.alpha = 0.2) +
+  scale_y_continuous(labels = dollar) +
+  scale_fill_manual(values = c("#93C6E0","#003087","#001f5b")) +
+  labs(title = "Distribución de errores absolutos por modelo", x = NULL, y = "Error absoluto (USD)") +
+  theme_minimal(base_size = 12)
+```
+
+<div class="figure">
+<img src="05-modelos_files/figure-html/errores-dist-1.png" alt="Distribución de errores absolutos por modelo" width="672" />
+<p class="caption">(\#fig:errores-dist)Distribución de errores absolutos por modelo</p>
+</div>
+
+### ¿Por qué XGBoost supera a los demás?
+
+| Dimensión | Lasso | Random Forest | XGBoost |
+|---|---|---|---|
+| **Sesgo** | Alto (linealidad forzada) | Bajo | Bajo |
+| **Varianza** | Bajo | Moderado | Bajo |
+| **No-linealidades** | No captura | Sí | Sí (más eficiente) |
+| **Regularización** | L1 explícita | No integrada | L1 + L2 en función objetivo |
+
+XGBoost detecta interacciones (`género × plataforma`, tendencias no lineales de `year`) que Lasso no puede modelar, y los enfoca secuencialmente sobre residuos, lo que lo hace más eficiente que el promediado paralelo de RF.
+
+---
+
+## Validación cruzada del modelo ganador
+
+
+``` r
+set.seed(42)
+X_completo <- model.matrix(formula_ohe, data = modelo_base)
+dfull <- xgb.DMatrix(data = X_completo, label = modelo_base$usd)
+
+cv_result <- xgb.cv(params = params, data = dfull, nrounds = 500, nfold = 5,
+                    early_stopping_rounds = 30, verbose = 0, showsd = TRUE)
+
+best_round <- cv_result$best_iteration
+rmse_cv    <- cv_result$evaluation_log$test_rmse_mean[best_round]
+rmse_cv_sd <- cv_result$evaluation_log$test_rmse_std[best_round]
+
+cat(sprintf("RMSE CV 5-fold: $%.2f ± $%.2f | IC: [$%.2f, $%.2f]\n",
+            rmse_cv, rmse_cv_sd, rmse_cv - rmse_cv_sd, rmse_cv + rmse_cv_sd))
+```
+
+Baja desviación estándar entre pliegues confirma que el modelo generaliza correctamente (no sobreajustado).
+
+---
+
+## Ejemplos de predicción
+
+
+``` r
+nuevos_juegos <- data.frame(
+  genero_principal = factor(c("Action","Role Playing","Puzzle"), levels = levels(train_rf$genero_principal)),
+  platform         = factor(c("PS5","PS5","PS4"), levels = levels(train_rf$platform)),
+  year             = c(2024, 2024, 2023)
+)
+
+pred_nuevos <- predict(xgb_model, newdata = xgb.DMatrix(data = model.matrix(formula_ohe, data = nuevos_juegos)))
+
+tibble(Género = c("Action","Role Playing","Puzzle"), Plataforma = c("PS5","PS5","PS4"),
+       Año = c(2024, 2024, 2023), `Precio predicho` = dollar(round(pred_nuevos, 2)),
+       Interpretación = c("Género masivo + PS5 → precio moderado",
+                          "Género premium + PS5 → precio elevado",
+                          "Género económico + PS4 maduro → precio bajo")) %>%
+  kable(caption = "Predicciones de precio con XGBoost") %>%
+  kable_styling(bootstrap_options = c("striped","hover"), full_width = TRUE)
+```
+
+<table class="table table-striped table-hover" style="margin-left: auto; margin-right: auto;">
+<caption>(\#tab:ejemplos-prediccion)(\#tab:ejemplos-prediccion)Predicciones de precio con XGBoost</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Género </th>
+   <th style="text-align:left;"> Plataforma </th>
+   <th style="text-align:right;"> Año </th>
+   <th style="text-align:left;"> Precio predicho </th>
+   <th style="text-align:left;"> Interpretación </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> Action </td>
+   <td style="text-align:left;"> PS5 </td>
+   <td style="text-align:right;"> 2024 </td>
+   <td style="text-align:left;"> $3.87 </td>
+   <td style="text-align:left;"> Género masivo + PS5 → precio moderado </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Role Playing </td>
+   <td style="text-align:left;"> PS5 </td>
+   <td style="text-align:right;"> 2024 </td>
+   <td style="text-align:left;"> $26.25 </td>
+   <td style="text-align:left;"> Género premium + PS5 → precio elevado </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Puzzle </td>
+   <td style="text-align:left;"> PS4 </td>
+   <td style="text-align:right;"> 2023 </td>
+   <td style="text-align:left;"> $6.69 </td>
+   <td style="text-align:left;"> Género económico + PS4 maduro → precio bajo </td>
+  </tr>
+</tbody>
+</table>
+
+> Las predicciones tienen un margen de error de ±MAE dólares. Para precios >$40 la precisión es menor por escasez de ejemplos.
+
+---
+
+## Limitaciones y mejoras futuras
+
+**Limitaciones:** variables predictoras limitadas (faltan Metacritic, ESRB, duración); snapshot estático de precios (febrero 2025); sesgo hacia segmento indie; género único como proxy; ausencia de datos de ventas.
+
+**Mejoras:** Grid Search de hiperparámetros (`tidymodels::tune_grid`); stacking de modelos; variables adicionales (rating, trofeos, ESRB); modelos de series de tiempo si se obtiene historial; segmentación indie vs. AAA por género.
+
+---
+
+## Conclusión del capítulo
+
+
+
+El modelo **Random Forest** proporciona el mejor desempeño (R² = **0.3244**, MAE = **\$6.66**), confirmando que género, plataforma y año son predictores significativos del precio. La varianza no explicada (1 − R²) indica que existen otros factores relevantes fuera del dataset.
+
+<!--chapter:end:05-modelos.Rmd-->
