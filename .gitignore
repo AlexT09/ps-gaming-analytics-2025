@@ -1,0 +1,58 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+.env
+venv/
+.venv/
+
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Modelos y cache ML
+*.pkl
+*.joblib
+
+# =========================
+# R
+# =========================
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+*.Rproj
+
+# Bookdown outputs
+r/bookdown/_book/
+r/bookdown/_bookdown_files/
+r/bookdown/*.log
+r/bookdown/*.aux
+r/bookdown/*.toc
+r/bookdown/*.out
+
+# =========================
+# VS Code / IDEs
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.temp
